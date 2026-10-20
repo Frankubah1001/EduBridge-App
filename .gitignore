@@ -1,0 +1,14 @@
+# Local developer credentials — never commit
+config.local.php
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Logs / runtime artifacts
+*.log
+error_log

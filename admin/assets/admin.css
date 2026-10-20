@@ -1,0 +1,20 @@
+/* EduBridge Admin Console — standalone staff theme (loaded on top of style.css) */
+.admin-body{background:#eef2f7}
+.admin-bar{background:var(--navy);color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.admin-bar-inner{max-width:1400px;margin:auto;display:flex;align-items:center;gap:14px;padding:12px 18px}
+.admin-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.1rem;color:#fff}
+.admin-brand small{font-weight:400;opacity:.7;font-size:.7rem;display:block}
+.admin-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--emerald),#007a4f);display:grid;place-items:center;font-size:1.2rem}
+.admin-nav{display:flex;align-items:center;gap:12px;margin-left:auto}
+.admin-nav a{color:#cbd5e1;padding:8px 12px;border-radius:8px;font-size:.9rem;font-weight:600}
+.admin-nav a:hover{background:rgba(255,255,255,.12);color:#fff}
+.admin-who{color:#cbd5e1;font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:8px}
+.admin-wrap{max-width:1400px}
+.admin-title{margin:.2em 0 .4em}
+.tabpane{animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+label.chk{display:flex;align-items:center;gap:9px;padding:7px 0;font-weight:600;cursor:pointer}
+label.chk input{width:auto;margin:0}
+.opt{line-height:1.6}
+.opt .btn{padding:5px 11px;font-size:.78rem;margin:4px 4px 0 0}
+#adminTabs .tab{font-size:.86rem}
