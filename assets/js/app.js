@@ -2,18 +2,40 @@
 const DB='edubridge', V=2;
 const store = {
   db:null,
-  open(){ return new Promise(res=>{ const r=indexedDB.open(DB,V);
-    r.onupgradeneeded=e=>{ const d=e.target.result;
-      if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');
-      if(!d.objectStoreNames.contains('queue'))d.createObjectStore('queue',{autoIncrement:true});
-      if(!d.objectStoreNames.contains('progress'))d.createObjectStore('progress',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('msgs'))d.createObjectStore('msgs',{autoIncrement:true}); };
-    r.onsuccess=e=>{store.db=e.target.result;res();}; r.onerror=()=>res(); }); },
-  putKV(k,v){ return new Promise(r=>{ try{const t=store.db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=r;}catch(e){localStorage.setItem('eb_'+k,JSON.stringify(v));r();}}); },
-  getKV(k,fb){ return new Promise(r=>{ try{const t=store.db.transaction('kv').objectStore('kv').get(k);t.onsuccess=()=>r(t.result??JSON.parse(localStorage.getItem('eb_'+k)||'null')??fb);}catch(e){r(JSON.parse(localStorage.getItem('eb_'+k)||'null')??fb);} }); },
-  enqueue(op){ return new Promise(r=>{ try{const t=store.db.transaction('queue','readwrite');t.objectStore('queue').add({...op,ts:Date.now()});t.oncomplete=()=>{updateSyncBadge();r();};}catch(e){r();}}); },
-  queueAll(){ return new Promise(r=>{ try{const t=store.db.transaction('queue').objectStore('queue').getAll();t.onsuccess=()=>r(t.result||[]);}catch(e){r([]);} }); },
-  clearQueue(){ return new Promise(r=>{ try{const t=store.db.transaction('queue','readwrite');t.objectStore('queue').clear();t.oncomplete=r;}catch(e){r();}}); }
+  _open:null,
+  /* Lazily open the database. Inline page scripts can call store.* before
+     DOMContentLoaded, so every accessor awaits this same promise. */
+  open(){ if(this._open) return this._open;
+    this._open=new Promise(res=>{ const r=indexedDB.open(DB,V);
+      r.onupgradeneeded=e=>{ const d=e.target.result;
+        if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');
+        if(!d.objectStoreNames.contains('queue'))d.createObjectStore('queue',{autoIncrement:true});
+        if(!d.objectStoreNames.contains('progress'))d.createObjectStore('progress',{keyPath:'id'});
+        if(!d.objectStoreNames.contains('msgs'))d.createObjectStore('msgs',{autoIncrement:true}); };
+      r.onsuccess=e=>{store.db=e.target.result;res();}; r.onerror=()=>res(); });
+    return this._open; },
+  /* localStorage mirror keeps data readable when IndexedDB is unavailable. */
+  _ls(k,fb){ try{ const v=localStorage.getItem('eb_'+k); return v==null?fb:JSON.parse(v);}catch(e){ return fb; } },
+  async putKV(k,v){ await this.open();
+    try{ const t=store.db.transaction('kv','readwrite'); t.objectStore('kv').put(v,k);
+      await new Promise(r=>{t.oncomplete=r;t.onerror=r;}); }
+    catch(e){ try{ localStorage.setItem('eb_'+k,JSON.stringify(v)); }catch(e2){} } },
+  async getKV(k,fb){ await this.open();
+    try{ const t=store.db.transaction('kv').objectStore('kv').get(k);
+      const v=await new Promise(r=>{t.onsuccess=()=>r(t.result);t.onerror=()=>r(undefined);});
+      return v===undefined||v===null?this._ls(k,fb):v; }
+    catch(e){ return this._ls(k,fb); } },
+  async enqueue(op){ await this.open();
+    try{ const t=store.db.transaction('queue','readwrite'); t.objectStore('queue').add({...op,ts:Date.now()});
+      await new Promise(r=>{t.oncomplete=r;t.onerror=r;}); }catch(e){ return; }
+    updateSyncBadge(); },
+  async queueAll(){ await this.open();
+    try{ const t=store.db.transaction('queue').objectStore('queue').getAll();
+      const rows=await new Promise(r=>{t.onsuccess=()=>r(t.result);t.onerror=()=>r([]);});
+      return rows||[]; }catch(e){ return []; } },
+  async clearQueue(){ await this.open();
+    try{ const t=store.db.transaction('queue','readwrite'); t.objectStore('queue').clear();
+      await new Promise(r=>{t.oncomplete=r;t.onerror=r;}); }catch(e){} }
 };
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2600); }
 async function addXP(n,reason){
@@ -32,8 +54,13 @@ async function renderXP(){ const xp=await store.getKV('xp',0); document.querySel
 function queueSync(op,payload){ store.enqueue({op,payload}); if(navigator.onLine) flushQueue(); }
 async function flushQueue(){
   const q=await store.queueAll(); if(!q.length||!navigator.onLine) {updateSyncBadge();return;}
-  try{ await fetch('api/sync.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({events:q})});
-    await store.clearQueue(); toast('☁️ Synced '+q.length+' offline actions'); }catch(e){}
+  try{
+    const r=await fetch('api/sync.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({events:q})});
+    const j=await r.json();
+    // Only drop the local queue when the server confirmed the write.
+    if(j&&j.ok&&(j.acked||0)===q.length){ await store.clearQueue(); toast('☁️ Synced '+q.length+' offline actions'); }
+    else { updateSyncBadge(); return; }
+  }catch(e){}
   updateSyncBadge();
 }
 async function updateSyncBadge(){ const q=await store.queueAll(); const s=document.getElementById('syncStatus');

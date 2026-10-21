@@ -24,6 +24,10 @@ a{color:var(--emerald);text-decoration:none}
 .pill.amber{background:#fff3cd;color:#8a6d00}.pill.navy{background:#e3eaf3;color:var(--navy)}
 .progress{height:10px;background:#e8edf3;border-radius:99px;overflow:hidden}.progress>div{height:100%;background:linear-gradient(90deg,var(--emerald),#34d399);border-radius:99px;transition:width .5s}
 .stat-num{font-size:1.9rem;font-weight:800;color:var(--navy)}
+/* Public plan prices only: U+20A6 (naira) is drawn from the SF *variable* font at
+   wght=800, where the N diagonal fuses with the two crossbars and the glyph reads as
+   double-struck. Weight 700 resolves to the static SF Bold face, whose naira is clean. */
+.price-naira{font-weight:700}
 input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;margin:6px 0 12px}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--emerald);border-color:var(--emerald)}
 label{font-weight:700;font-size:.85rem}

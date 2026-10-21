@@ -7,7 +7,7 @@ function naira($k){ return '₦'.number_format(($k?:0)/100); }
 <div class="card" <?= $p['slug']=='pro'?'style="border:2.5px solid var(--emerald)"':'' ?>>
 <?php if($p['slug']=='pro'): ?><span class="pill">Most popular</span><?php endif; ?>
 <h3><?=htmlspecialchars($p['name'])?></h3>
-<div class="stat-num"><?= $p['price_kobo']?naira($p['price_kobo']).'<span style="font-size:1rem">/'.$p['term'].'</span>':($p['slug']=='school'?'Custom':'₦0') ?></div>
+<div class="stat-num price-naira"><?= $p['price_kobo']?naira($p['price_kobo']).'<span style="font-size:1rem">/'.$p['term'].'</span>':($p['slug']=='school'?'Custom':'₦0') ?></div>
 <p class="muted"><?=htmlspecialchars($p['features']?:($p['slug']=='free'?'Courses · CBT mocks · AI tutor (daily limit) · offline bundles':($p['slug']=='pro'?'Unlimited AI · adaptive plans · mentors · certificates · parent SMS · no ads':'Teacher studio · class analytics · bulk vouchers · scholarships')))?></p>
 <?php if($p['slug']=='free'): ?><a class="btn btn-ghost" href="?p=register">Start free</a>
 <?php elseif($payOn): ?><button class="btn btn-primary" onclick="toast('Paystack checkout opens in production (sandbox)')"><?=$p['slug']=='school'?'Contact sales':'Upgrade (Paystack)'?></button>

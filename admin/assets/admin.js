@@ -149,6 +149,7 @@ async function loadVouchers(){ const rows=await get('voucher_list');
  document.getElementById('vcList').innerHTML=rows.map(v=>`<div class="opt"><b>${esc(v.code)}</b> <span class="pill">${esc(v.plan||'')}</span> <span class="pill ${v.status=='active'?'':'amber'}">${esc(v.status)}</span> <span class="muted">${v.used}/${v.max_uses} used</span>
  <button class="btn btn-ghost" onclick="voucherStatus(${v.id},'${v.status=='active'?'disabled':'active'}')">${v.status=='active'?'Disable':'Enable'}</button></div>`).join('')||'<p class="muted">No vouchers yet.</p>'; }
 async function saveVoucher(){ const r=await post('save_voucher',{code:document.getElementById('vc_code').value,plan_id:document.getElementById('vc_plan').value,max_uses:document.getElementById('vc_max').value});
+ if(r.error)return toast(r.error); toast('Voucher created'); document.getElementById('vc_code').value=''; loadVouchers(); }
 
 /* ---------- mentors + sessions ---------- */
 async function loadMentors(){ const rows=await get('mentor_list'); window._mentors=rows;
@@ -185,9 +186,6 @@ async function loadUsers(){ const q='&role='+document.getElementById('uq_role').
 async function userStatus(id,status){ await post('user_status',{id,status}); loadUsers(); }
 async function loadMessages(){ const rows=await get('message_list');
  document.getElementById('msgList').innerHTML=rows.map(m=>`<div class="opt"><b>${esc(m.from_name||'?')} → ${esc(m.to_name||'?')}</b> <span class="muted">${esc(m.created_at)} ${m.read_at?'· read':'· unread'}</span><br>${esc((m.body||'').slice(0,140))}</div>`).join('')||'<p class="muted">No messages.</p>'; }
-boot();
-
- if(r.error)return toast(r.error); toast('Voucher created'); document.getElementById('vc_code').value=''; loadVouchers(); }
 async function voucherStatus(id,status){ await post('voucher_status',{id,status}); loadVouchers(); }
 
 function editSchool(id){ const s=(window._schools||[]).find(x=>x.id==id); if(!s)return;
@@ -214,3 +212,6 @@ async function saveLesson(){ if(!SEL_COURSE)return toast('Click Lessons first');
  if(r.error)return toast(r.error);
  toast('Lesson added'); document.getElementById('lf_title').value=''; document.getElementById('lf_body').value=''; manageLessons(SEL_COURSE); loadCourses(); }
 async function delLesson(id,cid){ await post('delete_lesson',{id}); manageLessons(cid); loadCourses(); }
+
+/* ---------- start ---------- */
+boot();

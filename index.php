@@ -7,7 +7,10 @@ $title = ucfirst(str_replace('-',' ',$page));
 ?><!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title><?= $title ?> · <?= EDU_NAME ?></title>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0A2540">
-<link rel="stylesheet" href="assets/css/style.css"></head>
+<link rel="stylesheet" href="assets/css/style.css">
+<script>window.EDU_USER = <?= json_encode($user) ?>;</script>
+<script src="assets/js/irt.js"></script>
+<script src="assets/js/app.js"></script></head>
 <body>
 <div class="offline-bar" id="offlineBar">⚡ Offline mode — your work saves locally & syncs later</div>
 <header class="topbar"><div class="topbar-inner">
@@ -31,8 +34,5 @@ if(file_exists($f)) include $f; else echo "<div class='card'>Page missing</div>"
 </div>
 <footer class="footer">🌉 <b style="color:#fff">EduBridge AI</b> · Offline-first learning for Nigeria · WAEC · NECO · JAMB · <span id="syncStatus">● Online</span> · <a href="admin/index.php?r=login" style="color:#64748b;font-size:.78rem">Staff</a></footer>
 <div class="toast" id="toast"></div>
-<script>window.EDU_USER = <?= json_encode($user) ?>;</script>
-<script src="assets/js/irt.js"></script>
-<script src="assets/js/app.js"></script>
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
 </body></html>
